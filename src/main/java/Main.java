@@ -18,6 +18,7 @@ public class Main {
         StartHttpServer();
     }
 
+    //for testing via postman
     public  static void StartHttpServer()
     {
         HttpServer server = vertxInstance.createHttpServer();
