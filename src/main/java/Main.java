@@ -49,14 +49,21 @@ public class Main {
         router.route(HttpMethod.POST, "/api/HammingEncrypt/").handler(routingContext -> {
             HttpServerResponse response = routingContext.response();
             response.setChunked(true);
-            response.write("/api/HammingEncrypt/");
+            String body = routingContext.getBodyAsString();
+            //get val from bit str
+            int x = Integer.parseInt(body, 2);
+            int y = MyHammingImpl.HammingEncode(x);
+            response.write(Integer.toBinaryString(y));
             response.end();
         });
 
         router.route(HttpMethod.POST, "/api/HammingDecrypt/").handler(routingContext -> {
             HttpServerResponse response = routingContext.response();
             response.setChunked(true);
-            response.write("/api/HammingDecrypt/");
+            String body = routingContext.getBodyAsString();
+            int y = Integer.parseInt(body, 2);
+            int x = MyHammingImpl.HammingDecode(y);
+            response.write(Integer.toBinaryString(x));
             response.end();
         });
 

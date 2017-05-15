@@ -23,4 +23,8 @@ public class Utils {
         return n | (1 << (k - 1));
     }
 
+    public static int invBit(int n, int k) {
+        return n ^ (1 << (k - 1));
+    }
+
 }
