@@ -1,0 +1,86 @@
+import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerResponse;
+import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.BodyHandler;
+
+/**
+ * Created by Installed on 15.05.2017.
+ */
+public class Main {
+
+    public static Vertx vertxInstance;
+
+    public static void main(String [] args)
+    {
+        vertxInstance = Vertx.vertx();
+        StartHttpServer();
+    }
+
+    public  static void StartHttpServer()
+    {
+        HttpServer server = vertxInstance.createHttpServer();
+        Router router = Router.router(vertxInstance);
+        router.route().handler(BodyHandler.create());
+
+        router.route(HttpMethod.POST, "/api/CRCcount/").handler(routingContext -> {
+            HttpServerResponse response = routingContext.response();
+            response.setChunked(true);
+            String body = routingContext.getBodyAsString();
+            String crc = MyCRCImpl.countCRC32(body);
+            response.write(body+"|"+crc);
+            response.end();
+        });
+
+        router.route(HttpMethod.POST, "/api/CRCcheck/").handler(routingContext -> {
+            HttpServerResponse response = routingContext.response();
+            response.setChunked(true);
+            String body = routingContext.getBodyAsString();
+            if(MyCRCImpl.checkCRC32(body)) {
+                response.write("good");
+            }
+            else {
+                response.write("bad");
+            }
+            response.end();
+        });
+
+        router.route(HttpMethod.POST, "/api/HammingEncrypt/").handler(routingContext -> {
+            HttpServerResponse response = routingContext.response();
+            response.setChunked(true);
+            response.write("/api/HammingEncrypt/");
+            response.end();
+        });
+
+        router.route(HttpMethod.POST, "/api/HammingDecrypt/").handler(routingContext -> {
+            HttpServerResponse response = routingContext.response();
+            response.setChunked(true);
+            response.write("/api/HammingDecrypt/");
+            response.end();
+        });
+
+        router.route(HttpMethod.POST, "/api/ShannonFanoEncrypt/").handler(routingContext -> {
+            HttpServerResponse response = routingContext.response();
+            response.setChunked(true);
+            response.write("/api/ShannonFanoEncrypt/");
+            response.end();
+        });
+
+        router.route(HttpMethod.POST, "/api/ShannonFanoDecrypt/").handler(routingContext -> {
+            HttpServerResponse response = routingContext.response();
+            response.write("/api/ShannonFanoDecrypt/");
+            response.end();
+        });
+
+        router.route(HttpMethod.POST, "/api/LZDecompress/").handler(routingContext -> {
+            HttpServerResponse response = routingContext.response();
+            response.setChunked(true);
+            response.write("/api/LZDecompress/");
+            response.end();
+        });
+
+        server.requestHandler(router::accept).listen(8089);
+    }
+
+}
