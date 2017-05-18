@@ -1,4 +1,4 @@
-package LZWCompress;
+package LZWDeCompress;
 /******************************************************************************
  *  Compilation:  javac LZW.java
  *  Execution:    java LZW - < input.txt   (compress)
@@ -18,8 +18,6 @@ package LZWCompress;
  *  for more details.
  *
  ******************************************************************************/
-
-import LZWCompress.TST;
 
 /**
  *  The {@code LZW} class provides static methods for compressing
@@ -46,8 +44,8 @@ public class LZW {
      * them using LZW compression with 12-bit codewords; and writes the results
      * to standard output.
      */
-    public static void compress(String input) {
-        String input = BinaryStdIn.readString();
+    public static String compress(String input) {
+        StringBuilder result = new StringBuilder();
         TST<Integer> st = new TST<Integer>();
         for (int i = 0; i < R; i++)
             st.put("" + (char) i, i);
@@ -55,14 +53,13 @@ public class LZW {
 
         while (input.length() > 0) {
             String s = st.longestPrefixOf(input);  // Find max prefix match s.
-            BinaryStdOut.write(st.get(s), W);      // Print s's encoding.
+            result.append(String.format("%04d", st.get(s)));      // Print s's encoding.
             int t = s.length();
             if (t < input.length() && code < L)    // Add s to symbol table.
                 st.put(input.substring(0, t + 1), code++);
             input = input.substring(t);            // Scan past s in input.
         }
-        BinaryStdOut.write(R, W);
-        BinaryStdOut.close();
+        return result.toString();
     }
 
     /**
@@ -70,7 +67,8 @@ public class LZW {
      * 12-bit codewords from standard input; expands them; and writes
      * the results to standard output.
      */
-    public static void expand() {
+    public static String expand(String data) {
+        StringBuilder result = new StringBuilder();
         String[] st = new String[L];
         int i; // next available codeword value
 
@@ -79,20 +77,24 @@ public class LZW {
             st[i] = "" + (char) i;
         st[i++] = "";                        // (unused) lookahead for EOF
 
-        int codeword = BinaryStdIn.readInt(W);
-        if (codeword == R) return;           // expanded message is empty string
+        int codeword = Integer.parseInt(data.substring(0, 4));
+        if (codeword == R) return result.toString();           // expanded message is empty string
         String val = st[codeword];
 
         while (true) {
-            BinaryStdOut.write(val);
-            codeword = BinaryStdIn.readInt(W);
+            result.append(val);
+            data = data.substring(4, data.length());
+            if(data.length() < 4)
+                break;
+            String sCodeword = data.substring(0, 4);
+            codeword = Integer.parseInt(sCodeword);
             if (codeword == R) break;
             String s = st[codeword];
             if (i == codeword) s = val + val.charAt(0);   // special case hack
             if (i < L) st[i++] = val + s.charAt(0);
             val = s;
         }
-        BinaryStdOut.close();
+        return result.toString();
     }
 
 }

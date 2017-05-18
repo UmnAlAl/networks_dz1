@@ -1,4 +1,4 @@
-package LZWCompress;
+package LZWDeCompress;
 
 /******************************************************************************
  *  Compilation:  javac Queue.java

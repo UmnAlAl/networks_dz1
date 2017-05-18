@@ -1,3 +1,4 @@
+import LZWDeCompress.LZW;
 import ShannonFanoCode.MyShannonFanoImpl;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
@@ -87,10 +88,21 @@ public class Main {
             response.end();
         });
 
-        router.route(HttpMethod.POST, "/api/LZDecompress/").handler(routingContext -> {
+        router.route(HttpMethod.POST, "/api/LZWCompress/").handler(routingContext -> {
             HttpServerResponse response = routingContext.response();
             response.setChunked(true);
-            response.write("/api/LZDecompress/");
+            String body = routingContext.getBodyAsString();
+            String compressed = LZW.compress(body);
+            response.write(compressed);
+            response.end();
+        });
+
+        router.route(HttpMethod.POST, "/api/LZWDecompress/").handler(routingContext -> {
+            HttpServerResponse response = routingContext.response();
+            response.setChunked(true);
+            String body = routingContext.getBodyAsString();
+            String decompressed = LZW.expand(body);
+            response.write(decompressed);
             response.end();
         });
 
