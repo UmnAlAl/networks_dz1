@@ -27,4 +27,8 @@ public class Utils {
         return n ^ (1 << (k - 1));
     }
 
+    public static String DoubleToBinaryString(Double x) {
+        return Long.toBinaryString(Double.doubleToLongBits(x));
+    }
+
 }
