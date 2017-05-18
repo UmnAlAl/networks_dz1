@@ -5,174 +5,6 @@ import java.util.*;
  */
 public class MyShannonFanoImpl {
 
-    private static final int ASCII_LENGTH = 7;
-
-    private String originalString;
-    private int originalStringLength;
-    private HashMap<Character, String> compressedResult;
-    private HashMap<Character, Double> characterFrequency;
-    private double entropy;
-    private double averageLengthBefore;
-    private double averageLengthAfter;
-    private boolean probabilityIsGiven;
-
-    public ShannonFano(String str) {
-        super();
-        originalString = str;
-        originalStringLength = str.length();
-        characterFrequency = new HashMap<Character, Double>();
-        compressedResult = new HashMap<Character, String>();
-        entropy = 0.0;
-        averageLengthBefore = 0.0;
-        averageLengthAfter = 0.0;
-        probabilityIsGiven = false;
-
-        this.calculateFrequency();
-        this.compressString();
-        this.calculateEntropy();
-        this.calculateAverageLengthBeforeCompression();
-        this.calculateAverageLengthAfterCompression();
-
-    }
-
-    public ShannonFano(String str, HashMap<Character, Double> probablity) {
-        super();
-        originalString = str;
-        originalStringLength = str.length();
-
-        characterFrequency = new HashMap<Character, Double>();
-
-        double checkPoint = 0;
-        for (Character c : originalString.toCharArray()) {
-            checkPoint += probablity.get(c);
-            characterFrequency.put(c, originalStringLength * probablity.get(c));
-        }
-
-        assert checkPoint == 1.0; // Invariant, make sure sum of probabilities
-        // is 1
-
-        compressedResult = new HashMap<Character, String>();
-        entropy = 0.0;
-        averageLengthBefore = 0.0;
-        averageLengthAfter = 0.0;
-        probabilityIsGiven = true;
-
-        this.compressString();
-        this.calculateEntropy();
-        this.calculateAverageLengthBeforeCompression();
-        this.calculateAverageLengthAfterCompression();
-
-    }
-
-    private void compressString() {
-        List<Character> charList = new ArrayList<Character>();
-
-        Iterator<Map.Entry<Character, Double>> entries = characterFrequency.entrySet().iterator();
-        while (entries.hasNext()) {
-            Map.Entry<Character, Double> entry = entries.next();
-            charList.add(entry.getKey());
-        }
-
-        appendBit(compressedResult, charList, true);
-    }
-
-    private void appendBit(HashMap<Character, String> result, List<Character> charList, boolean up) {
-        String bit = "";
-        if (!result.isEmpty()) {
-            bit = (up) ? "0" : "1";
-        }
-
-        for (Character c : charList) {
-            String s = (result.get(c) == null) ? "" : result.get(c);
-            result.put(c, s + bit);
-        }
-
-        if (charList.size() >= 2) {
-            int separator = (int) Math.floor((float) charList.size() / 2.0);
-
-            List<Character> upList = charList.subList(0, separator);
-            appendBit(result, upList, true);
-            List<Character> downList = charList.subList(separator, charList.size());
-            appendBit(result, downList, false);
-        }
-    }
-
-    private void calculateFrequency() {
-        for (Character c : originalString.toCharArray()) {
-            if (characterFrequency.containsKey(c)) {
-                characterFrequency.put(c, new Double(characterFrequency.get(c) + 1.0));
-            } else {
-                characterFrequency.put(c, 1.0);
-            }
-        }
-    }
-
-    private void calculateEntropy() {
-        double probability = 0.0;
-        for (Character c : originalString.toCharArray()) {
-            probability = 1.0 * characterFrequency.get(c) / originalStringLength;
-            entropy += probability * (Math.log(1.0 / probability) / Math.log(2));
-        }
-    }
-
-    private void calculateAverageLengthBeforeCompression() {
-        double probability = 0.0;
-        for (Character c : originalString.toCharArray()) {
-            probability = 1.0 * characterFrequency.get(c) / originalStringLength;
-            averageLengthBefore += probability * ASCII_LENGTH;
-        }
-    }
-
-    private void calculateAverageLengthAfterCompression() {
-        double probability = 0.0;
-        for (Character c : originalString.toCharArray()) {
-            probability = 1.0 * characterFrequency.get(c) / originalStringLength;
-            averageLengthAfter += probability * compressedResult.get(c).length();
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public HashMap<Character, Double> getCharacterFrequency() {
-        return (HashMap<Character, Double>) characterFrequency.clone();
-    }
-
-    @SuppressWarnings("unchecked")
-    public HashMap<Character, String> getCompressedResult() {
-        return (HashMap<Character, String>) compressedResult.clone();
-    }
-
-    @Override
-    public String toString() {
-        String str = "";
-        str += "*** Probability is" + (probabilityIsGiven ? " " : " Not ") + "Given. "
-                + (probabilityIsGiven ? "We did not calculate the probability."
-                : "Probability was calculated using frequency of each character in the given String.")
-                + "\n";
-        str += "Original String: \"" + originalString + "\"\n";
-        str += "------------------------------------------------------------------------\n";
-        str += "Symbol\t\tFrequency\tProbability\tShannon-F Code\tASCII Code\n";
-        str += "------------------------------------------------------------------------\n";
-
-        for (Character c : compressedResult.keySet()) {
-            str += "'" + c + "'" + "\t\t" + Math.round(characterFrequency.get(c) * 100.0) / 100.0 + "\t\t"
-                    + Math.round(characterFrequency.get(c) / originalStringLength * 10000.0) / 10000.0 + "\t\t"
-                    + compressedResult.get(c) + "\t\t" + Integer.toBinaryString((int) c);
-            str += "\n";
-        }
-        str += "------------------------------------------------------------------------\n";
-        str += "Efficiency before Compression: " + 100 * (Math.round((entropy / averageLengthBefore) * 100.0) / 100.0)
-                + "%\n";
-        str += "Efficiency after Compression: " + 100 * (Math.round((entropy / averageLengthAfter) * 100.0) / 100.0)
-                + "%\n";
-        str += "------------------------------------------------------------------------\n";
-        return str;
-    }
-
-
-
-
-
-
     public static final HashMap<Character, Double> myCharacterfreqs;
     static {
         myCharacterfreqs = new HashMap<>();
@@ -182,6 +14,11 @@ public class MyShannonFanoImpl {
         myCharacterfreqs.put('d', 0.40);
     }
 
+    /*
+    *
+    * REDUNDANT: java hashmap is used instead of this tree
+    *
+    */
     private class BinaryShFanTree {
 
         public class TreeNode {
@@ -284,12 +121,88 @@ public class MyShannonFanoImpl {
         Collections.sort(list, new Comparator<Map.Entry<Character, Double>>() {
             @Override
             public int compare(Map.Entry<Character, Double> o1, Map.Entry<Character, Double> o2) {
-                return (o1.getValue()).compareTo(o2.getValue());
+                return (o2.getValue()).compareTo(o1.getValue());
             }
         });
-
+        HashMap<Character, String> result = new HashMap<>();
+        buildCodeTable(result, list, true);
+        return result;
     }
 
+    private static void buildCodeTable(HashMap<Character, String> result, List<Map.Entry<Character, Double>> orderedFreqlistInterval, boolean up) {
+        //which bit to concat to words into current list freq interval
+        String bit = (up) ? "0" : "1";
+
+        //update strings for symbols from current interval and count sum freq
+        double sumFreq = 0;
+        for (Map.Entry<Character, Double> entry : orderedFreqlistInterval) {
+            Character c = entry.getKey();
+            String s = (result.get(c) == null) ? "" : result.get(c);
+            result.put(c, s + bit);
+            sumFreq += entry.getValue();
+        }
+
+        if (orderedFreqlistInterval.size() >= 2) {
+
+            //count separator for recursion
+            int separator = 0;
+            if(orderedFreqlistInterval.size() == 2) {
+                separator = 1;
+            }
+            else {
+                double curHalfSum = 0;
+                while (curHalfSum < sumFreq / 2.0) {
+                    curHalfSum += (orderedFreqlistInterval.get(separator)).getValue();
+                    separator++;
+                }
+            }
+
+            List<Map.Entry<Character, Double>> upList = orderedFreqlistInterval.subList(0, separator);
+            buildCodeTable(result, upList, true);
+            List<Map.Entry<Character, Double>> downList = orderedFreqlistInterval.subList(separator, orderedFreqlistInterval.size());
+            buildCodeTable(result, downList, false);
+        }
+    }
+
+    private static HashMap<String, Character> buildReverseCodeTable(HashMap<Character, Double> freqs) {
+        HashMap<Character, String> codeTable = buildCodeTable(freqs);
+        HashMap<String, Character> reverseCodeTable = new HashMap<>();
+        for (Map.Entry<Character, String> entry:
+             codeTable.entrySet()) {
+            reverseCodeTable.put(entry.getValue(), entry.getKey());
+        }
+        return reverseCodeTable;
+    }
+
+    //to encode - just build code table and substitute
+    public static void encode(String result, String data) {
+        HashMap<Character, String> codeTable = buildCodeTable(myCharacterfreqs);
+        for (Character c:
+             data.toCharArray()) {
+            String code = codeTable.get(c);
+            result += ((code == null) ? "" : code);
+        }
+    }
+
+    //to decode - build reverse code table and search occurency of code word at the start of cur string
+    public static void decode(String result, String data) {
+        HashMap<String, Character> reverseCodeTable = buildReverseCodeTable(myCharacterfreqs);
+        decode(result, data, reverseCodeTable);
+    }
+
+    private static void decode(String result, String data, HashMap<String, Character> reverseCodeodeTable) {
+        for (String s:
+             reverseCodeodeTable.keySet()) {
+            if(data.startsWith(s)) {
+                result += reverseCodeodeTable.get(s);
+                decode(result, data.substring(0, s.length()), reverseCodeodeTable);
+            }//if
+        }//foreach
+    }//fn
+
+    /*
+    * Not used
+    * */
     private static HashMap<Character, Double> countCharFrequencesIntoString(String s) {
         HashMap<Character, Double> result = new HashMap<>();
         //foreach for counting nums of symbols
