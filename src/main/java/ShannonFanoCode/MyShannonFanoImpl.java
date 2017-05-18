@@ -1,3 +1,5 @@
+package ShannonFanoCode;
+
 import java.util.*;
 
 /**
@@ -15,107 +17,6 @@ public class MyShannonFanoImpl {
         myCharacterfreqs.put('e', 0.20);
         myCharacterfreqs.put('f', 0.30);
     }
-
-    /*
-    *
-    * REDUNDANT: java hashmap is used instead of this tree
-    *
-    */
-    private class BinaryShFanTree {
-
-        public class TreeNode {
-            public boolean isLeaf;
-            public TreeNode leftChild; //to 0 edge
-            public TreeNode rightChild; //to 1 edge
-            public Character value;
-            public  TreeNode() {
-                this.isLeaf = false;
-                this.leftChild = null;
-                this.rightChild = null;
-            }
-        }
-
-        public TreeNode root;
-
-        public BinaryShFanTree() {
-            root = new TreeNode();
-        }
-
-        //converts string like "100101010" as path at the tree with leaf value
-        public void insertPathWithBitString(String s, TreeNode curNode, Character value) {
-            //if came to leaf - insert val and return
-            if(s.length() == 0) {
-                curNode.isLeaf = true;
-                curNode.value = value;
-                return;
-            }
-            //if continue to left
-            if(s.charAt(0) == '0') {
-                //if no child in appropriate direction - add new node
-                if(curNode.leftChild == null) {
-                    TreeNode newNode = new TreeNode();
-                    curNode.leftChild = newNode;
-                    curNode.isLeaf = false;
-                    insertPathWithBitString(s.substring(1), curNode.leftChild, value);
-                }
-                else { //if we have appropiate child - continue with it
-                    insertPathWithBitString(s.substring(1), curNode.leftChild, value);
-                }
-            }//if-left-child
-            else {
-                //if no child in appropriate direction - add new node
-                if(curNode.rightChild == null) {
-                    TreeNode newNode = new TreeNode();
-                    curNode.rightChild = newNode;
-                    curNode.isLeaf = false;
-                    insertPathWithBitString(s.substring(1), curNode.rightChild, value);
-                }
-                else { //if we have appropiate child - continue with it
-                    insertPathWithBitString(s.substring(1), curNode.rightChild, value);
-                }
-            }//if-else
-        }//fn
-
-        //reads inserted
-        public Character readPathWithBitString(String s, TreeNode curNode) {
-            //if came to leaf - return val, else got bad string - return null
-            if(s.length() == 0) {
-                if(!curNode.isLeaf) {
-                    return null;
-                }
-                return curNode.value;
-            }
-            //if continue to left
-            if(s.charAt(0) == '0') {
-                //if no child in appropriate direction - bad string
-                if(curNode.leftChild == null) {
-                    return null;
-                }
-                else { //if we have appropiate child - continue with it
-                    return readPathWithBitString(s.substring(1), curNode.leftChild);
-                }
-            }//if-left-child
-            else {
-                //if no child in appropriate direction
-                if(curNode.rightChild == null) {
-                    return null;
-                }
-                else { //if we have appropiate child - continue with it
-                    return readPathWithBitString(s.substring(1), curNode.rightChild);
-                }
-            }//if-else
-        }
-
-        public void buildBinaryShFanTreeFromCodeTable(HashMap<Character, String> codeMap) {
-            root = new TreeNode();
-            for (Character c:
-                 codeMap.keySet()) {
-                insertPathWithBitString(codeMap.get(c), root, c);
-            }
-        }
-
-    }//tree class
-
 
     //create code table with entrias like <symbol, code>, code - string like "1001011"
     private static HashMap<Character, String> buildCodeTable(HashMap<Character, Double> freqs) {
@@ -193,14 +94,28 @@ public class MyShannonFanoImpl {
         return result.toString();
     }
 
-    //to decode - build reverse code table and search occurency of code word at the start of cur string
+    //decoding with tree
+    //to decode - build build tree code and use it to decoding
     public static String decode(String data) {
         StringBuilder result = new StringBuilder();
-        HashMap<String, Character> reverseCodeTable = buildReverseCodeTable(myCharacterfreqs);
-        decode(result, data, reverseCodeTable);
+        HashMap<Character, String> codeTable = buildCodeTable(myCharacterfreqs);
+        BinaryShFanTree tree = new BinaryShFanTree();
+        tree.buildBinaryShFanTreeFromCodeTable(codeTable);
+
+        while (data.length() != 0) {
+            BinaryShFanTree.StringReadPrefixFromTreeResult prefix =  tree.readPathWithBitString(data);
+            //if error occured - return what we could decode
+            if(prefix == null)
+                break;
+            //read next symbol
+            result.append(prefix.endNode.value);
+            //cut what we decoded
+            data = data.substring(prefix.endPos);
+        }
         return result.toString();
     }
 
+    //decoding with hash table
     private static void decode(StringBuilder result, String data, HashMap<String, Character> reverseCodeodeTable) {
         for (String s:
              reverseCodeodeTable.keySet()) {
