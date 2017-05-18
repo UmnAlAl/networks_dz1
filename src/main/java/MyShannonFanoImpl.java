@@ -9,9 +9,11 @@ public class MyShannonFanoImpl {
     static {
         myCharacterfreqs = new HashMap<>();
         myCharacterfreqs.put('a', 0.10);
-        myCharacterfreqs.put('b', 0.20);
-        myCharacterfreqs.put('c', 0.30);
-        myCharacterfreqs.put('d', 0.40);
+        myCharacterfreqs.put('b', 0.10);
+        myCharacterfreqs.put('c', 0.10);
+        myCharacterfreqs.put('d', 0.20);
+        myCharacterfreqs.put('e', 0.20);
+        myCharacterfreqs.put('f', 0.30);
     }
 
     /*
@@ -126,6 +128,11 @@ public class MyShannonFanoImpl {
         });
         HashMap<Character, String> result = new HashMap<>();
         buildCodeTable(result, list, true);
+        //cut off first 0 that was added on the first recursion step
+        for (Map.Entry<Character, String> entry:
+             result.entrySet()) {
+            result.put(entry.getKey(), entry.getValue().substring(1));
+        }
         return result;
     }
 
@@ -175,27 +182,32 @@ public class MyShannonFanoImpl {
     }
 
     //to encode - just build code table and substitute
-    public static void encode(String result, String data) {
+    public static String encode(String data) {
+        StringBuilder result = new StringBuilder();
         HashMap<Character, String> codeTable = buildCodeTable(myCharacterfreqs);
         for (Character c:
              data.toCharArray()) {
             String code = codeTable.get(c);
-            result += ((code == null) ? "" : code);
+            result.append ( (code == null) ? "" : code );
         }
+        return result.toString();
     }
 
     //to decode - build reverse code table and search occurency of code word at the start of cur string
-    public static void decode(String result, String data) {
+    public static String decode(String data) {
+        StringBuilder result = new StringBuilder();
         HashMap<String, Character> reverseCodeTable = buildReverseCodeTable(myCharacterfreqs);
         decode(result, data, reverseCodeTable);
+        return result.toString();
     }
 
-    private static void decode(String result, String data, HashMap<String, Character> reverseCodeodeTable) {
+    private static void decode(StringBuilder result, String data, HashMap<String, Character> reverseCodeodeTable) {
         for (String s:
              reverseCodeodeTable.keySet()) {
             if(data.startsWith(s)) {
-                result += reverseCodeodeTable.get(s);
-                decode(result, data.substring(0, s.length()), reverseCodeodeTable);
+                result.append( reverseCodeodeTable.get(s) );
+                decode(result, data.substring(s.length(), data.length()), reverseCodeodeTable);
+                return;
             }//if
         }//foreach
     }//fn

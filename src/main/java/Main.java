@@ -68,16 +68,21 @@ public class Main {
             response.end();
         });
 
-        router.route(HttpMethod.POST, "/api/ShannonFanoEncrypt/").handler(routingContext -> {
+        router.route(HttpMethod.POST, "/api/ShannonFanoEncode/").handler(routingContext -> {
             HttpServerResponse response = routingContext.response();
             response.setChunked(true);
-            response.write("/api/ShannonFanoEncrypt/");
+            String body = routingContext.getBodyAsString();
+            String coded = MyShannonFanoImpl.encode(body);
+            response.write(coded);
             response.end();
         });
 
-        router.route(HttpMethod.POST, "/api/ShannonFanoDecrypt/").handler(routingContext -> {
+        router.route(HttpMethod.POST, "/api/ShannonFanoDecode/").handler(routingContext -> {
             HttpServerResponse response = routingContext.response();
-            response.write("/api/ShannonFanoDecrypt/");
+            response.setChunked(true);
+            String body = routingContext.getBodyAsString();
+            String decoded = MyShannonFanoImpl.decode(body);
+            response.write(decoded);
             response.end();
         });
 
